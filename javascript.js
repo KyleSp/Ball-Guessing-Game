@@ -2,6 +2,8 @@
 	Made by Kyle Spurlock
 */
 
+//html elements
+
 var canvas = document.getElementById("mainCanvas");
 var ctx = canvas.getContext("2d");
 var guessNum = document.getElementById("guessNum");
@@ -9,32 +11,43 @@ var accuracyText = document.getElementById("accuracyText");
 var answerText = document.getElementById("answerText");
 var correctText = document.getElementById("correctText");
 
+//constants
+const WIDTH = canvas.width;
+const HEIGHT = canvas.height;
+
+const NUM_CIRC_MAX = 30;
+const NUM_CIRC_MIN = 5;
+
+const CIRC_SPEED = 1;
+
+//variables
+
 var tookGuess = false;
+
 var accuracy = 0;
 var plays = 0;
 
-var max = 30;
-var min = 5;
-var numCircles = Math.floor(Math.random() * (max - min)) + min;
-var circles = [];
+var numCircles;
+var circles;
 
-var speed = 1;
+//classes
 
 class Circle {
 	constructor(radius) {
 		this.radius = radius;
-		this.centerX = radius + canvas.width / 2;
-		this.centerY = radius + canvas.height / 2;
+		this.centerX = radius + WIDTH / 2;
+		this.centerY = radius + HEIGHT / 2;
 		
-		this.velX = speed * (2 * Math.random() - 1);
-		this.velY = speed * (2 * Math.random() - 1);
+		this.velX = CIRC_SPEED * (2 * Math.random() - 1);
+		this.velY = CIRC_SPEED * (2 * Math.random() - 1);
 		
 		this.leftEdge = radius;
-		this.rightEdge = canvas.width - radius;
+		this.rightEdge = WIDTH - radius;
 		this.topEdge = radius;
-		this.bottomEdge = canvas.height - radius;
+		this.bottomEdge = HEIGHT - radius;
 	}
 	
+	//check for collisions between a circle and the edges of the window and then change the circle's movement vector
 	checkCollisions() {
 		if (this.centerX <= this.leftEdge) {
 			this.velX *= -1;
@@ -48,18 +61,29 @@ class Circle {
 	}
 }
 
+//functions
+
+//calculate a random number from min (inclusive) to max (exclusive)
+function calcRand(min, max) {
+	return Math.floor(Math.random() * (max - min)) + min;
+}
+
+//primary game function that creates all of the circles and draws them every 10 milliseconds
 function game() {
 	circles = [];
+	
+	//get random number of circles
+	numCircles = calcRand(NUM_CIRC_MIN, NUM_CIRC_MAX);
 	
 	for (var i = 0; i < numCircles; ++i) {
 		var circle = new Circle(10);
 		circles.push(circle);
 	}
 	
-	setInterval(draw, 10);	//run draw function every 10 miliseconds
+	setInterval(draw, 10);	//run draw function every 10 milliseconds
 }
 
-	
+//clear the canvas and draw a frame
 function draw() {
 	//clear canvas
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -81,8 +105,9 @@ function draw() {
 	}
 }
 
+//check how close the user's guess is to the actual amount, and calculate the accuracy
 function checkAnswer() {
-	if (!tookGuess) {
+	if (!tookGuess && guessNum.value != "") {
 		var guessed = guessNum.value;
 		
 		var currAccuracy = 100 - Math.abs((numCircles - guessed) / (numCircles)) * 100;
@@ -106,6 +131,7 @@ function checkAnswer() {
 	}
 }
 
+//reset canvas and html text, and restart the game
 function reset() {
 	if (tookGuess) {
 		//stop running the draw function
@@ -113,9 +139,6 @@ function reset() {
 		
 		//clear canvas
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
-		
-		//set new number of circles
-		numCircles = Math.floor(Math.random() * (max - min)) + min;
 		
 		//reset text
 		guessNum.value = "";
